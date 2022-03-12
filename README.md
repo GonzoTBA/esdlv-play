@@ -1,6 +1,7 @@
 # ESDLV play
 Adds gamification skills to ESDLV
-Note: this plugin requires plugin post-readers
+
+Note: this plugin requires the post-readers plugin
 
 ## Scores
 Users score 
