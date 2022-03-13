@@ -52,44 +52,61 @@ register_activation_hook( __FILE__, 'esdlv_play_table_install' );
 // Adds a shortcode calling the function below
 add_shortcode( 'esdlv_scores', 'esdlv_play_show_scores' );
 /**
- * esdlv_play_show_scores - Creates a table showing the user scores
+ * esdlv_play_show_scores - Prints a table showing the user scores
  *
  * @return void
  */
 function esdlv_play_show_scores() {
-    global $wpdb;
-    // Get every user with his score from the play table
-    $table_name = $wpdb->prefix . 'esdlv_play';
-    $charset_collate = $wpdb->get_charset_collate();
+    // If user is registered
+    if ( is_user_logged_in() ) {
+        global $wpdb;
+        // Get every user with his score from the play table
+        $table_name = $wpdb->prefix . 'esdlv_play';
+        $charset_collate = $wpdb->get_charset_collate();
 
-    $results = $wpdb->get_results( 
-                $wpdb->prepare( "SELECT * FROM $table_name ORDER BY user_score DESC" ) 
-             );
+        $results = $wpdb->get_results( 
+                    $wpdb->prepare( "SELECT * FROM $table_name ORDER BY user_score DESC" ) 
+                );
 
-    // Shortcodes need a returned value, not echoed.
-    // Start an output buffer that will capture all echoes
-    ob_start();
-    
-    echo "<table class='esdlv-scores'>";
-    echo "<tr>";
-    echo "<th>Usuario</th><th>Puntuación</th>";
-    foreach ( $results as $result ) {
-        $user_id = $result->user_id;
-        $username = get_user_by('id', $user_id)->display_name;
-        // Print table
+        // Shortcodes need a returned value, not echoed.
+        // Start an output buffer that will capture all echoes
+        ob_start();
+        
+        echo "<table class='esdlv-scores'>";
         echo "<tr>";
-        echo "<td>" . $username . "</td><td>" . $result->user_score . "</td>";
-        echo "</tr>";
-    }
-    echo "</table>";
+        echo "<th>Usuario</th><th>Puntuación</th>";
+        foreach ( $results as $result ) {
+            $user_id = $result->user_id;
+            $username = get_user_by('id', $user_id)->display_name;
+            // Print table
+            echo "<tr>";
+            echo "<td>" . $username . "</td><td>" . $result->user_score . "</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
 
-    // End output buffer
-    $output = ob_get_clean();
+        // End output buffer
+        $output = ob_get_clean();  
+    }
+    // Not registered users
+    else {
+        ob_start();
+        echo "<p>Esta página sólo está disponible para usuarios registrados.";
+        echo "<br>";
+        echo "<p>Puedes registrarte <a href='https://elsentidodelavida.net/wp-login.php?action=register'>aquí</a>.";
+        $output = ob_get_clean();
+    }
 
     return $output;
 }
 
 
+/**
+ * esdlv_play_add_score_on_comment - Adds a score to a user upon commenting
+ *
+ * @param  mixed $comment_ID
+ * @return void
+ */
 function esdlv_play_add_score_on_comment( $comment_ID ) {
     // Find out the user who commented
     $user_id = get_comment( $comment_ID )->user_id;
